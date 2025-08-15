@@ -1,18 +1,30 @@
 import {useGSAP} from "@gsap/react";
 import {SplitText} from "gsap/all";
+import {useRef} from "react";
 import gsap from "gsap";
+import {useMediaQuery} from "react-responsive";
 
 function Hero() {
+    const videoRef = useRef<HTMLVideoElement>(null)
+
+
+    const isMobile = useMediaQuery({maxWidth: 767})
+
     useGSAP(() => {
+        // Split the MOJITO text
         const heroSplit = new SplitText(".title", {
             type: 'chars, words'
         })
+
+        // Split the Paragraphs
         const paragraphSplit = new SplitText(".subtitle", {
             type: 'lines'
         })
 
+        // Adding class to the mojito text to apply a gradient for each
         heroSplit.chars.forEach((char) => char.classList.add("text-gradient"))
 
+        // Animating the MOJOTO text
         gsap.from(heroSplit.chars, {
             yPercent: 100,
             duration: 1.8,
@@ -20,6 +32,7 @@ function Hero() {
             stagger: 0.05
         })
 
+        // Animating paragrahs
         gsap.from(paragraphSplit.lines, {
             opacity: 0,
             yPercent: 100,
@@ -29,7 +42,7 @@ function Hero() {
             delay: 1
         })
 
-
+        // Animating leafs
         gsap.timeline({
             scrollTrigger: {
                 trigger: '#hero',
@@ -37,8 +50,33 @@ function Hero() {
                 end: 'bottom top',
                 scrub: true,
             }
-        }).to(".right-leaf", {y:200}, 0)
+        }).to(".right-leaf", {y: 200}, 0)
             .to("left-leaf", {y: -200}, 0)
+
+
+        // Animating Hero video
+        const startValue = isMobile ? "top 50%" : "center 60%"
+        const endValue = isMobile ? "120% top" : "bottom top"
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: 'video',
+                start: startValue,
+                end: endValue,
+                scrub: true,
+                pin: true,
+
+            }
+        })
+        if (!videoRef.current) return;
+        videoRef.current.onloadeddata = () => {
+
+            if (!videoRef.current) return;
+            tl.to(videoRef.current, {
+                currentTime: videoRef?.current.duration
+            })
+        }
+
     }, [])
 
     return <>
@@ -66,6 +104,15 @@ function Hero() {
                 </div>
             </div>
         </section>
+
+        <div className={"video absolute inset-0"}>
+            <video src={"/videos/output.mp4"}
+                   muted
+                   ref={videoRef}
+                   playsInline
+                   preload={"auto"}
+            />
+        </div>
     </>
 }
 
